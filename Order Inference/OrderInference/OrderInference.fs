@@ -1,66 +1,48 @@
-﻿namespace OrderInference
+﻿namespace Quantix
 
-open DataWrangler.Structures
 open System
-open System.Collections.Generic
 
-type qteSide = 
-| Bid = 1
-| Ask = -1
-
-type ordSide = 
-| Buy = 1
-| Sell = -1
-
-type quote = { time:DateTime; price:float; size:int; qteSide:qteSide }
-type trade = { time:DateTime; price:float; size:int; }
-type order = { time:DateTime; price:float; size:int; ordSide:ordSide }
-
-module Inferfunc =
+module OrderInference = 
     
-    let tickToQuote (t:TickData) = 
-        let side = 
-            match t.Type with
-            | Type.Ask -> qteSide.Ask
-            | Type.Bid -> qteSide.Bid
-            | _ -> raise (System.ArgumentException("TickData.Type must be Type.Bid or Type.Ask"))
-        {time= t.TimeStamp; price = t.Price; size = int t.Size; qteSide=side}
-
-    let initQuote (t:TickData) =
-        let q = tickToQuote t 
-        (q, q, q)
-
-    let dropOldestAddCurrent (last, sndLast, _) current = (current, last, sndLast)
-
-    let generateOrdersFromtrade = 0
-
-type OrderInfer() = 
-
-    let DefaultQuote : quote = {time = DateTime.MinValue; price = 0.0; size = 0; qteSide = qteSide.Bid}
-    let mutable recentTicksBids = (DefaultQuote, DefaultQuote, DefaultQuote)
-    let mutable recentTicksAsks = (DefaultQuote, DefaultQuote, DefaultQuote)
-    let mutable bid = 0.0
-    let mutable ask = 0.0
-    let mutable initialized = false
+    type quote = { time:DateTime; price:float; size:int; depth:int }
+    type trade = { time:DateTime; price:float; size:int; }
+    type order = { time:DateTime; price:float; size:int; level:float }
+    type priceNode = { price:float; bid:int; ask:int; updated:DateTime; }
+    type market = { bestBid:float; bestAsk:float; last:float; updated:DateTime; }
     
-    member this.BidQuotes with get() = recentTicksBids and private set(v) = recentTicksBids <- v
-    member this.AskQuotes with get() = recentTicksAsks and private set(v) = recentTicksAsks <- v
-    member this.BestBid with get() = bid and private set(v) = bid <- v
-    member this.BestAsk with get() = ask and private set(v) = ask <- v
-    member this.Initialized with get() = initialized and private set(v) = initialized <- v
-    
-    member this.Initialize (bidTick:TickData, askTick:TickData) = 
-        this.BestBid <- bidTick.Price 
-        this.BidQuotes <- Inferfunc.initQuote bidTick
-        this.BestAsk <- askTick.Price
-        this.AskQuotes <- Inferfunc.initQuote askTick
-        this.Initialized <- true
-        initialized
+    type Tick = 
+        | Bid of quote
+        | Ask of quote
+        | Trade of trade
 
-    member this.NewTick(tick : TickData) =
-        if not initialized then raise (System.InvalidOperationException("Initialize() not called"))
-        match tick.Type with 
-        | Type.Ask -> ()
-        | Type.Bid -> ()
-        | Type.Trade -> ()
-        | _ -> ()
+    type Order = 
+        | Buy of order
+        | Sell of order
+        
+    let defaultQuote:quote = { time = DateTime.MinValue; price = 0.0; size = 0; depth = 0 }
+    let defaultTrade:trade = { time = DateTime.MinValue; price = 0.0; size = 0; }
+    let defaultOrder       = { time = DateTime.MinValue; price = 0.0; size = 0; level = 0.0 }
+    let defaultPriceNode   = { price = 0.0; bid = 0; ask = 0; updated = DateTime.MinValue; }
+    let defaultMarket      = { bestBid = 0.0; bestAsk = 0.0; last = 0.0; updated = DateTime.MinValue; }
+
+    let modifyMarket market tick = 
+        match tick with
+        | Bid quote   -> { market with bestBid = quote.price; updated = quote.time} 
+        | Ask quote   -> { market with bestAsk = quote.price; updated = quote.time}  
+        | Trade trade -> { market with last = trade.price; updated = trade.time}
+
+    let modifyPriceNode pNode tick =
+        match tick with
+        | Bid quote   ->  { pNode with bid = quote.size; updated = quote.time }
+        | Ask quote   ->  { pNode with ask = quote.size; updated = quote.time }
+        | Trade trade ->  { pNode with updated = trade.time }
+
+        
+    let evalutePriceNode pNode tick =
+        let diff = (
+            match tick with
+            | Bid quote   ->  pNode.bid - quote.size 
+            | Ask quote   ->  pNode.ask - quote.size 
+            | Trade trade ->  0  )
+        ()
+

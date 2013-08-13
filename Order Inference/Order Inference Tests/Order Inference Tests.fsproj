@@ -47,7 +47,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Root_class_tests.fs" />
+    <Compile Include="Order_Inference_tests.fs">
+      <SubType>Test</SubType>
+    </Compile>
+    <Compile Include="Order_inference_test_old.fs" />
     <None Include="App.config" />
     <None Include="MSTest.runsettings" />
   </ItemGroup>

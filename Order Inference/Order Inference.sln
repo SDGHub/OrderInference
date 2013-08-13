@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Order_Inference_App", "Order_Inference_App\Order_Inference_App.fsproj", "{DECEFD0E-B13B-442B-8C88-6FF7A2EAAF25}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "OrderInference", "OrderInference\OrderInference.fsproj", "{BB965786-6E13-4053-AC82-497B2F917BEE}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Order Inference", "OrderInference\Order Inference.fsproj", "{BB965786-6E13-4053-AC82-497B2F917BEE}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Order Inference Tests", "Order Inference Tests\Order Inference Tests.fsproj", "{1F3EDE6E-7D84-45BD-9B0C-00198760A714}"
 EndProject
