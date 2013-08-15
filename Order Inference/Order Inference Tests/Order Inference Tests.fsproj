@@ -47,10 +47,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Order_Inference_tests.fs">
+    <Compile Include="Test Helper Functions.fs" />
+    <Compile Include="Order Inference tests.fs">
       <SubType>Test</SubType>
     </Compile>
-    <Compile Include="Order_inference_test_old.fs" />
     <None Include="App.config" />
     <None Include="MSTest.runsettings" />
   </ItemGroup>
