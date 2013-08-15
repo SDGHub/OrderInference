@@ -42,52 +42,33 @@ module OrderInference =
         | Trade trade, _   -> { pNode with updated = trade.time }
     
     let priceNodeAfterTick pNodeBefore market tick = 
-        let (pNodeAfter, bidChg, askChg) = (
+        let pNodeAfter, buySize, sellSize = (
             match (market.isOpen, tick, pNodeBefore.bid, pNodeBefore.ask) with
-            | true, Bid q, bid, ask -> {pNodeBefore with bid = q.size; ask = 0; updated = q.time}, bid - q.size, ask
-            | true, Ask q, bid, ask -> {pNodeBefore with bid = 0; ask = q.size; updated = q.time}, bid, ask - q.size
-            | true, Trade t, bid, ask -> defaultPriceNode,0,0
-            | false, Bid q, bid, ask -> {pNodeBefore with bid = q.size; updated = q.time}, bid - q.size, 0
-            | false, Ask q, bid, ask -> {pNodeBefore with ask = q.size; updated = q.time}, 0, ask - q.size
-            | false, Trade t, bid, ask -> defaultPriceNode,0,0
-            //| _ -> defaultPriceNode,0,0
-        
+            | true,  Bid q,   bid, ask -> { pNodeBefore with bid = q.size; ask = 0; updated = q.time }, q.size - bid, -ask
+            | true,  Ask q,   bid, ask -> { pNodeBefore with bid = 0; ask = q.size; updated = q.time }, -bid, q.size - ask
+            | true,  Trade t, bid, ask -> { pNodeBefore with bid = max 0 (bid - t.size); ask = max 0 (ask - t.size); updated = t.time }, t.size - bid, t.size - ask
+            | false, Bid q,   bid, ask -> { pNodeBefore with bid = q.size; updated = q.time }, q.size - bid, 0
+            | false, Ask q,   bid, ask -> { pNodeBefore with ask = q.size; updated = q.time }, 0, q.size - ask
+            | false, Trade t, bid, ask ->   pNodeBefore, 0, 0        
         )
-        (pNodeAfter, bidChg, askChg)
-        
-    let processTick (ords:Order list) (mkt:market) (pNode:priceNode) (tick:Tick) =         
+        pNodeAfter, buySize, sellSize
+
+    let processTick (orders:Order list) (market:market) (pNode:priceNode) (tick:Tick) =   
+        let (pNodeAfter, buySize, sellSize) = priceNodeAfterTick pNode market tick
+        let priceDiffBid = pNodeAfter.price - market.bestBid
+        let priceDiffAsk = market.bestAsk - pNodeAfter.price 
         let newOrds = seq {
-            match tick with
-            | Bid q -> 
-                let priceDiff = q.price - mkt.bestBid
-                match (q.size - pNode.bid) with
-                | diff when diff > 0 -> yield Buy { time = q.time; price = q.price; size = diff; intensity = priceDiff } 
-                | diff when diff < 0 -> yield CancelBuy { time = q.time; price = q.price; size = diff; intensity = priceDiff } 
-                | _ -> ()
-                let priceDiffAsk = mkt.bestAsk - q.price
-                match (pNode.ask, mkt.isOpen) with
-                | diff, true when diff > 0 -> yield CancelSell { time = q.time; price = q.price; size = diff; intensity = priceDiffAsk }                
-                | _ -> ()  
-            | Ask q ->
-                let priceDiff = mkt.bestAsk - q.price 
-                match (q.size - pNode.ask) with
-                | diff when diff > 0 -> yield Sell { time = q.time; price = q.price; size = diff; intensity = priceDiff } 
-                | diff when diff < 0 -> yield CancelSell { time = q.time; price = q.price; size = diff; intensity = priceDiff } 
-                | _ -> ()                  
-                let priceDiffBid = mkt.bestAsk - q.price
-                match (pNode.bid, mkt.isOpen) with
-                | diff, true when diff > 0 -> yield CancelBuy { time = q.time; price = q.price; size = diff; intensity = priceDiffBid }                
-                | _ -> ()  
-            | Trade t -> 
-                let bidDiff = pNode.bid - t.size
-                let askDiff = pNode.ask - t.size
-                () }
-        let allOrders = newOrds |> Seq.toList |> List.append ords
-        let newPNode = (
-            match tick with
-            | Bid q -> modifyPriceNode pNode (mkt.isOpen) tick            
-            | Ask q -> modifyPriceNode pNode (mkt.isOpen) tick  
-            | Trade t -> pNode )        
-        (allOrders, newPNode) 
+            match buySize with
+            | size when size > 0 -> yield Buy { time = pNodeAfter.updated; price = pNodeAfter.price; size = size; intensity = priceDiffBid }
+            | size when size < 0 -> yield CancelBuy { time = pNodeAfter.updated; price = pNodeAfter.price; size = size; intensity = priceDiffBid }
+            | _ -> ()
+            match sellSize with
+            | size when size > 0 -> yield Sell { time = pNodeAfter.updated; price = pNodeAfter.price; size = size; intensity = priceDiffAsk }
+            | size when size < 0 -> yield CancelSell { time = pNodeAfter.updated; price = pNodeAfter.price; size = size; intensity = priceDiffAsk }
+            | _ -> ()
+            } 
+        let allOrders = newOrds |> Seq.toList |> List.append orders
+        allOrders, pNodeAfter 
+                       
               
 

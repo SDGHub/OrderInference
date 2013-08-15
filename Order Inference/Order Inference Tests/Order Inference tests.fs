@@ -529,7 +529,7 @@ type processTick_plus_Bid_quote_where_bid_size_increases_and_market_is_open_test
     let bidQuote = Bid {defaultQuote with time = tickTime; price = bidPrice; size = bidSize;}
     let correctIntensity = bidPrice - bestBidP
     let correctOrderSize = bidSize - nodeBidSize 
-    let cancelSellSize = nodeAskSize      
+    let cancelSellSize = -nodeAskSize      
     let (ordersAfterTick, pNodeAfterTick) = processTick orders marketBeforeTick nodeBeforeTick bidQuote
 
     // Tests using Bid quote (increase in bid size)
@@ -597,7 +597,7 @@ type processTick_plus_Bid_quote_where_bid_size_decreases_and_market_is_open_test
     let bidQuote = Bid {defaultQuote with time = tickTime; price = bidPrice; size = bidSize;}
     let correctIntensity = bidPrice - bestBidP
     let correctOrderSize = bidSize - nodeBidSize
-    let cancelSellSize = nodeAskSize       
+    let cancelSellSize = -nodeAskSize       
     let (ordersAfterTick, pNodeAfterTick) = processTick orders marketBeforeTick nodeBeforeTick bidQuote
 
     // Tests using Bid quote (decrease in bid size)
@@ -669,7 +669,7 @@ type processTick_plus_Bid_quote_where_bid_size_is_unchanged_and_market_is_open_t
     let bidQuote = Bid {defaultQuote with time = tickTime; price = bidPrice; size = bidSize;}
     let correctIntensity = bidPrice - bestBidP
     let correctOrderSize = bidSize - nodeBidSize    
-    let cancelSellSize = nodeAskSize   
+    let cancelSellSize = -nodeAskSize   
     let (ordersAfterTick, pNodeAfterTick) = processTick orders marketBeforeTick nodeBeforeTick bidQuote
 
     // Tests using Bid quote (bid size unchanged)
@@ -773,7 +773,7 @@ type processTick_plus_Ask_quote_where_ask_size_increases_and_market_is_open_test
     let askQuote = Ask {defaultQuote with time = tickTime; price = askPrice; size = askSize;}
     let correctIntensity = bestAskP - askPrice
     let correctOrderSize = askSize - nodeAskSize 
-    let cancelBuySize = nodeBidSize      
+    let cancelBuySize = -nodeBidSize      
     let (ordersAfterTick, pNodeAfterTick) = processTick orders marketBeforeTick nodeBeforeTick askQuote
 
     // Tests using Bid quote (increase in ask size)
@@ -841,7 +841,7 @@ type processTick_plus_Ask_quote_where_ask_size_decreases_and_market_is_open_test
     let askQuote = Ask {defaultQuote with time = tickTime; price = askPrice; size = askSize;}
     let correctIntensity = bestAskP - askPrice
     let correctOrderSize = askSize - nodeAskSize 
-    let cancelBuySize = nodeBidSize      
+    let cancelBuySize = -nodeBidSize      
     let (ordersAfterTick, pNodeAfterTick) = processTick orders marketBeforeTick nodeBeforeTick askQuote
 
     // Tests using Ask quote (decrease in ask size)
@@ -908,7 +908,7 @@ type processTick_plus_Ask_quote_where_Ask_size_is_unchanged_and_market_is_open_t
     let askSize = nodeAskSize
     let askQuote = Ask {defaultQuote with time = tickTime; price = askPrice; size = askSize;}
     let correctIntensity = bestAskP - askPrice
-    let cancelBuySize = nodeBidSize      
+    let cancelBuySize = -nodeBidSize      
     let (ordersAfterTick, pNodeAfterTick) = processTick orders marketBeforeTick nodeBeforeTick askQuote
 
     // Tests using Bid quote (ask size unchanged)
