@@ -229,11 +229,11 @@ type Default_PriceNode_Data_Structure_tests() =
     let price = 13700.
     let bidSize = 10
     let askSize =  5
-    let pNode = { defaultPriceNode with price = price; bid = bidSize; ask = askSize; updated = updateTime; }
+    let pNode = { defaultPriceNode with price = price; bid = bidSize; ask = askSize; time = updateTime; }
     
     [<TestMethod>]        
     member this.priceNode_matches_updateTime() = 
-        Assert.AreEqual(updateTime, pNode.updated)
+        Assert.AreEqual(updateTime, pNode.time)
 
     [<TestMethod>]        
     member this.priceNode_matches_price() = 
@@ -254,13 +254,13 @@ type Default_Market_Data_Structure_tests() =
     let bestBidP = 13700.
     let bestAskP = 13710.
     let lastP =  13720.
-    let market = { defaultMarket with bestBid = bestBidP; bestAsk = bestAskP; last = lastP; updated = updateTime; }
+    let market = { defaultMarket with bestBid = bestBidP; bestAsk = bestAskP; last = lastP; time = updateTime; }
     let isOpen2 = false
     let market2 = { market with isOpen = isOpen2 }
     
     [<TestMethod>]        
     member this.market_matches_updateTime() = 
-        Assert.AreEqual(updateTime, market.updated)
+        Assert.AreEqual(updateTime, market.time)
 
     [<TestMethod>]        
     member this.market_matches_bestBid() = 
@@ -304,7 +304,7 @@ type modifyMarket_with_Bid_quote_tests() =
     let bestBidP = 13700.
     let bestAskP = 13710.
     let lastP =  13720.
-    let marketBeforeBidQuote = { bestBid = bestBidP; bestAsk = bestAskP; last = lastP; updated = updateTime; isOpen = true; }
+    let marketBeforeBidQuote = { bestBid = bestBidP; bestAsk = bestAskP; last = lastP; time = updateTime; isOpen = true; }
 
      // bid record test set up
     let bidTime = (DateTime.MinValue.AddTicks(int64 2))
@@ -321,7 +321,7 @@ type modifyMarket_with_Bid_quote_tests() =
 
     [<TestMethod>]        
     member this.modifyMarket_with_bid_quote_correctly_modifies_update_time() = 
-        Assert.AreEqual(marketAfterBidQuote.updated, bidTime)
+        Assert.AreEqual(marketAfterBidQuote.time, bidTime)
         
     [<TestMethod>]        
     member this.modifyMarket_with_bid_quote_return_same_bestAsk() = 
@@ -339,7 +339,7 @@ type modifyMarket_with_Ask_quote_tests() =
     let bestBidP = 13700.
     let bestAskP = 13710.
     let lastP =  13720.
-    let marketBeforeAskQuote = { bestBid = bestBidP; bestAsk = bestAskP; last = lastP; updated = updateTime; isOpen = true; }
+    let marketBeforeAskQuote = { bestBid = bestBidP; bestAsk = bestAskP; last = lastP; time = updateTime; isOpen = true; }
 
      // ask record test set up
     let askTime = (DateTime.MinValue.AddTicks(int64 2))
@@ -356,7 +356,7 @@ type modifyMarket_with_Ask_quote_tests() =
 
     [<TestMethod>]        
     member this.modifyMarket_with_Ask_quote_correctly_modifies_update_time() = 
-        Assert.AreEqual(marketAfterAskQuote.updated, askTime)
+        Assert.AreEqual(marketAfterAskQuote.time, askTime)
         
     [<TestMethod>]        
     member this.modifyMarket_with_Ask_quote_return_same_bestBid() = 
@@ -374,7 +374,7 @@ type modifyMarket_with_Trade_tests() =
     let bestBidP = 13700.
     let bestAskP = 13710.
     let lastP =  13700.
-    let marketBeforeTrade = { bestBid = bestBidP; bestAsk = bestAskP; last = lastP; updated = updateTime; isOpen = true;}
+    let marketBeforeTrade = { bestBid = bestBidP; bestAsk = bestAskP; last = lastP; time = updateTime; isOpen = true;}
 
      // ask record test set up
     let tradeTime = (DateTime.MinValue.AddTicks(int64 2))
@@ -391,7 +391,7 @@ type modifyMarket_with_Trade_tests() =
 
     [<TestMethod>]        
     member this.modifyMarket_with_ask_quote_correctly_modifies_update_time() = 
-        Assert.AreEqual(marketAfterTrade.updated, tradeTime)
+        Assert.AreEqual(marketAfterTrade.time, tradeTime)
         
     [<TestMethod>]        
     member this.modifyMarket_with_ask_quote_return_same_bestBid() = 
@@ -409,7 +409,7 @@ type modifyPriceNode_with_Bid_quote_tests() =
     let nodePrice = 13700.
     let bSize = 20
     let aSize = 10
-    let nodeBeforeBidQuote = { price = nodePrice ; bid = bSize; ask = aSize; updated = updateTime; }
+    let nodeBeforeBidQuote = { price = nodePrice ; bid = bSize; ask = aSize; time = updateTime; }
 
      // bid quote test set up
     let bidTime = (DateTime.MinValue.AddTicks(int64 2))
@@ -417,9 +417,8 @@ type modifyPriceNode_with_Bid_quote_tests() =
     let bidSize = 15
     let bidLevel =  1
     let bidQuote = Bid {defaultQuote with time = bidTime; price = bidPrice; size = bidSize; depth = bidLevel}
-    
-    let nodeAfterBidQuoteMktOpen = modifyPriceNode nodeBeforeBidQuote true bidQuote
-    let nodeAfterBidQuoteMktClosed = modifyPriceNode nodeBeforeBidQuote false bidQuote
+    let nodeAfterBidQuoteMktOpen, _, _ = priceNodeAfterTick nodeBeforeBidQuote defaultMarket bidQuote 
+    let nodeAfterBidQuoteMktClosed, _, _ = priceNodeAfterTick nodeBeforeBidQuote {defaultMarket with isOpen = false} bidQuote 
     
     [<TestMethod>]        
     member this.modifyPriceNode_with_bid_quote_correctly_modifies_bid_size() = 
@@ -427,7 +426,7 @@ type modifyPriceNode_with_Bid_quote_tests() =
 
     [<TestMethod>]        
     member this.modifyPriceNode_with_bid_quote_correctly_modifies_update_time() = 
-        Assert.AreEqual(nodeAfterBidQuoteMktOpen.updated, bidTime)
+        Assert.AreEqual(nodeAfterBidQuoteMktOpen.time, bidTime)
         
     [<TestMethod>]        
     member this.modifyPriceNode_with_bid_quote_return_same_ask_size_when_mkt_open() = 
@@ -445,7 +444,7 @@ type modifyPriceNode_with_Ask_quote_tests() =
     let nodePrice = 13700.
     let bSize = 20
     let aSize = 10
-    let nodeBeforeAskQuote = { price = nodePrice ; bid = bSize; ask = aSize; updated = updateTime; }
+    let nodeBeforeAskQuote = { price = nodePrice ; bid = bSize; ask = aSize; time = updateTime; }
 
      // ask quote test set up
     let askTime = (DateTime.MinValue.AddTicks(int64 2))
@@ -454,8 +453,8 @@ type modifyPriceNode_with_Ask_quote_tests() =
     let askLevel =  1
     let askQuote = Ask {defaultQuote with time = askTime; price = askPrice; size = askSize; depth = askLevel}
     
-    let nodeAfterAskQuoteMktOpen = modifyPriceNode nodeBeforeAskQuote true askQuote
-    let nodeAfterAskQuoteMktClosed = modifyPriceNode nodeBeforeAskQuote false askQuote
+    let nodeAfterAskQuoteMktOpen, _, _ = priceNodeAfterTick nodeBeforeAskQuote defaultMarket askQuote 
+    let nodeAfterAskQuoteMktClosed, _, _ = priceNodeAfterTick nodeBeforeAskQuote {defaultMarket with isOpen = false} askQuote 
     
     [<TestMethod>]        
     member this.modifyPriceNode_with_ask_quote_correctly_modifies_ask_size() = 
@@ -463,7 +462,7 @@ type modifyPriceNode_with_Ask_quote_tests() =
 
     [<TestMethod>]        
     member this.modifyPriceNode_with_ask_quote_correctly_modifies_update_time() = 
-        Assert.AreEqual(nodeAfterAskQuoteMktOpen.updated, askTime)
+        Assert.AreEqual(nodeAfterAskQuoteMktOpen.time, askTime)
         
     [<TestMethod>]        
     member this.modifyPriceNode_with_ask_quote_return_same_bid_size_Mkt_Open() = 
@@ -481,28 +480,40 @@ type modifyPriceNode_with_Trade_tests() =
     let nodePrice = 13700.
     let bSize = 20
     let aSize = 10
-    let nodeBeforeTrade = { price = nodePrice ; bid = bSize; ask = aSize; updated = updateTime; }
+    let nodeBeforeTrade = { price = nodePrice ; bid = bSize; ask = aSize; time = updateTime; }
 
      // trade quote test set up
     let tradeTime = (DateTime.MinValue.AddTicks(int64 2))
     let tradePrice = nodePrice
     let tradeSize = 15
     let tradeLevel =  1
-    let tradeQuote = Trade {defaultTrade with time = tradeTime; price = tradePrice; size = tradeSize; }
+    let bidSizeAfterTrade = max 0 (nodeBeforeTrade.bid - tradeSize)
+    let askSizeAfterTrade = max 0 (nodeBeforeTrade.ask - tradeSize)
+    let trade = Trade {defaultTrade with time = tradeTime; price = tradePrice; size = tradeSize; }
+    
+    let nodeAfterTrade, _, _ = priceNodeAfterTick nodeBeforeTrade defaultMarket trade 
+    let nodeAfterTradeMktClosed, _, _ = priceNodeAfterTick nodeBeforeTrade {defaultMarket with isOpen = false} trade 
 
-    let nodeAfterTrade = modifyPriceNode nodeBeforeTrade true tradeQuote    
 
     [<TestMethod>]        
     member this.modifyPriceNode_with_trade_correctly_modifies_update_time() = 
-        Assert.AreEqual(nodeAfterTrade.updated, tradeTime)
+        Assert.AreEqual(nodeAfterTrade.time, tradeTime)
         
     [<TestMethod>]        
-    member this.modifyPriceNode_with_trade_quote_return_same_bid_size() = 
-        Assert.AreEqual(nodeAfterTrade.bid, nodeBeforeTrade.bid)  
+    member this.modifyPriceNode_with_trade_quote_return_correct_bid_size_when_mkt_open() = 
+        Assert.AreEqual(nodeAfterTrade.bid, bidSizeAfterTrade)  
 
     [<TestMethod>]        
-    member this.modifyPriceNode_with_trade_quote_return_same_ask_size() = 
-        Assert.AreEqual(nodeAfterTrade.ask, nodeBeforeTrade.ask)       
+    member this.modifyPriceNode_with_trade_quote_return_correct_ask_size_when_mkt_open() = 
+        Assert.AreEqual(nodeAfterTrade.ask, askSizeAfterTrade)       
+        
+    [<TestMethod>]        
+    member this.modifyPriceNode_with_trade_quote_return_same_bid_size_when_mkt_closed() = 
+        Assert.AreEqual(nodeAfterTradeMktClosed.bid, nodeBeforeTrade.bid)  
+
+    [<TestMethod>]        
+    member this.modifyPriceNode_with_trade_quote_return_same_ask_size_when_mkt_closed() = 
+        Assert.AreEqual(nodeAfterTradeMktClosed.ask, nodeBeforeTrade.ask)       
             
 [<TestClass>]
 type processTick_plus_Bid_quote_where_bid_size_increases_and_market_is_open_tests() = 
@@ -515,13 +526,13 @@ type processTick_plus_Bid_quote_where_bid_size_increases_and_market_is_open_test
     let bestBidP = 13700.
     let bestAskP = 13700.
     let lastP =  13700.
-    let marketBeforeTick = { bestBid = bestBidP; bestAsk = bestAskP; last = lastP; updated = lastUpdateTime; isOpen = true;}
+    let marketBeforeTick = { bestBid = bestBidP; bestAsk = bestAskP; last = lastP; time = lastUpdateTime; isOpen = true;}
 
     // priceNode test set up
     let nodePrice = 13700.
     let nodeBidSize = 20
     let nodeAskSize = 25
-    let nodeBeforeTick = { price = nodePrice ; bid = nodeBidSize; ask = nodeAskSize; updated = lastUpdateTime; }
+    let nodeBeforeTick = { price = nodePrice ; bid = nodeBidSize; ask = nodeAskSize; time = lastUpdateTime; }
     
     // bid quote with incresing size set up
     let bidPrice = 13700.
@@ -583,13 +594,13 @@ type processTick_plus_Bid_quote_where_bid_size_decreases_and_market_is_open_test
     let bestBidP = 13700.
     let bestAskP = 13700.
     let lastP =  13700.
-    let marketBeforeTick = { bestBid = bestBidP; bestAsk = bestAskP; last = lastP; updated = lastUpdateTime; isOpen = true;}
+    let marketBeforeTick = { bestBid = bestBidP; bestAsk = bestAskP; last = lastP; time = lastUpdateTime; isOpen = true;}
 
     // priceNode test set up
     let nodePrice = 13700.
     let nodeBidSize = 20
     let nodeAskSize = 25
-    let nodeBeforeTick = { price = nodePrice ; bid = nodeBidSize; ask = nodeAskSize; updated = lastUpdateTime; }
+    let nodeBeforeTick = { price = nodePrice ; bid = nodeBidSize; ask = nodeAskSize; time = lastUpdateTime; }
     
     // bid quote with decresing size set up
     let bidPrice = 13700.
@@ -655,13 +666,13 @@ type processTick_plus_Bid_quote_where_bid_size_is_unchanged_and_market_is_open_t
     let bestBidP = 13700.
     let bestAskP = 13700.
     let lastP =  13700.
-    let marketBeforeTick = { bestBid = bestBidP; bestAsk = bestAskP; last = lastP; updated = lastUpdateTime; isOpen = true;}
+    let marketBeforeTick = { bestBid = bestBidP; bestAsk = bestAskP; last = lastP; time = lastUpdateTime; isOpen = true;}
 
     // priceNode test set up
     let nodePrice = 13700.
     let nodeBidSize = 20
     let nodeAskSize = 25
-    let nodeBeforeTick = { price = nodePrice ; bid = nodeBidSize; ask = nodeAskSize; updated = lastUpdateTime; }
+    let nodeBeforeTick = { price = nodePrice ; bid = nodeBidSize; ask = nodeAskSize; time = lastUpdateTime; }
     
     // bid quote with same bid size set up
     let bidPrice = 13700.
@@ -703,7 +714,7 @@ type processTick_plus_Bid_quote_where_bid_size_is_unchanged_and_market_is_open_t
         Assert.AreEqual(orderSize, cancelSellSize) 
 
 [<TestClass>]
-type processTick_plus_Bid_quote_where_maket_is_closed_Ask_side_tests() = 
+type processTick_plus_Bid_quote_where_market_is_closed_tests() = 
 
     let lastUpdateTime = (DateTime.MinValue.AddTicks(int64 1))
     let tickTime = (DateTime.MinValue.AddTicks(int64 2))
@@ -713,13 +724,13 @@ type processTick_plus_Bid_quote_where_maket_is_closed_Ask_side_tests() =
     let bestBidP = 13700.
     let bestAskP = 13700.
     let lastP =  13700.
-    let marketBeforeTick = { bestBid = bestBidP; bestAsk = bestAskP; last = lastP; updated = lastUpdateTime; isOpen = false;}
+    let marketBeforeTick = { bestBid = bestBidP; bestAsk = bestAskP; last = lastP; time = lastUpdateTime; isOpen = false;}
 
     // priceNode test set up
     let nodePrice = 13700.
     let nodeBidSize = 20
     let nodeAskSize = 25
-    let nodeBeforeTick = { price = nodePrice ; bid = nodeBidSize; ask = nodeAskSize; updated = lastUpdateTime; }
+    let nodeBeforeTick = { price = nodePrice ; bid = nodeBidSize; ask = nodeAskSize; time = lastUpdateTime; }
     
     // bid quote with incresing size set up
     let bidPrice = 13700.
@@ -759,13 +770,13 @@ type processTick_plus_Ask_quote_where_ask_size_increases_and_market_is_open_test
     let bestBidP = 13700.
     let bestAskP = 13700.
     let lastP =  13700.
-    let marketBeforeTick = { bestBid = bestBidP; bestAsk = bestAskP; last = lastP; updated = lastUpdateTime; isOpen = true;}
+    let marketBeforeTick = { bestBid = bestBidP; bestAsk = bestAskP; last = lastP; time = lastUpdateTime; isOpen = true;}
 
     // priceNode test set up
     let nodePrice = 13700.
     let nodeBidSize = 20
     let nodeAskSize = 25
-    let nodeBeforeTick = { price = nodePrice ; bid = nodeBidSize; ask = nodeAskSize; updated = lastUpdateTime; }
+    let nodeBeforeTick = { price = nodePrice ; bid = nodeBidSize; ask = nodeAskSize; time = lastUpdateTime; }
     
     // ask quote with incresing size set up
     let askPrice = 13700.
@@ -827,13 +838,13 @@ type processTick_plus_Ask_quote_where_ask_size_decreases_and_market_is_open_test
     let bestBidP = 13700.
     let bestAskP = 13700.
     let lastP =  13700.
-    let marketBeforeTick = { bestBid = bestBidP; bestAsk = bestAskP; last = lastP; updated = lastUpdateTime; isOpen = true;}
+    let marketBeforeTick = { bestBid = bestBidP; bestAsk = bestAskP; last = lastP; time = lastUpdateTime; isOpen = true;}
 
     // priceNode test set up
     let nodePrice = 13700.
     let nodeBidSize = 20
     let nodeAskSize = 25
-    let nodeBeforeTick = { price = nodePrice ; bid = nodeBidSize; ask = nodeAskSize; updated = lastUpdateTime; }
+    let nodeBeforeTick = { price = nodePrice ; bid = nodeBidSize; ask = nodeAskSize; time = lastUpdateTime; }
     
     // ask quote with decresing size set up
     let askPrice = 13700.
@@ -895,13 +906,13 @@ type processTick_plus_Ask_quote_where_Ask_size_is_unchanged_and_market_is_open_t
     let bestBidP = 13700.
     let bestAskP = 13700.
     let lastP =  13700.
-    let marketBeforeTick = { bestBid = bestBidP; bestAsk = bestAskP; last = lastP; updated = lastUpdateTime; isOpen = true;}
+    let marketBeforeTick = { bestBid = bestBidP; bestAsk = bestAskP; last = lastP; time = lastUpdateTime; isOpen = true;}
 
     // priceNode test set up
     let nodePrice = 13700.
     let nodeBidSize = 20
     let nodeAskSize = 25
-    let nodeBeforeTick = { price = nodePrice ; bid = nodeBidSize; ask = nodeAskSize; updated = lastUpdateTime; }
+    let nodeBeforeTick = { price = nodePrice ; bid = nodeBidSize; ask = nodeAskSize; time = lastUpdateTime; }
     
     // ask quote with same ask size set up
     let askPrice = 13700.
@@ -942,7 +953,7 @@ type processTick_plus_Ask_quote_where_Ask_size_is_unchanged_and_market_is_open_t
         Assert.AreEqual(orderSize, cancelBuySize) 
         
 [<TestClass>]
-type processTick_plus_Ask_quote_where_maket_is_closed_Bid_side_tests() = 
+type processTick_plus_Ask_quote_where_market_is_closed_tests() = 
 
     let lastUpdateTime = (DateTime.MinValue.AddTicks(int64 1))
     let tickTime = (DateTime.MinValue.AddTicks(int64 2))
@@ -952,13 +963,13 @@ type processTick_plus_Ask_quote_where_maket_is_closed_Bid_side_tests() =
     let bestBidP = 13700.
     let bestAskP = 13700.
     let lastP =  13700.
-    let marketBeforeTick = { bestBid = bestBidP; bestAsk = bestAskP; last = lastP; updated = lastUpdateTime; isOpen = false;}
+    let marketBeforeTick = { bestBid = bestBidP; bestAsk = bestAskP; last = lastP; time = lastUpdateTime; isOpen = false;}
 
     // priceNode test set up
     let nodePrice = 13700.
     let nodeBidSize = 20
     let nodeAskSize = 25
-    let nodeBeforeTick = { price = nodePrice ; bid = nodeBidSize; ask = nodeAskSize; updated = lastUpdateTime; }
+    let nodeBeforeTick = { price = nodePrice ; bid = nodeBidSize; ask = nodeAskSize; time = lastUpdateTime; }
     
     // ask quote with incresing size set up
     let askPrice = 13700.
@@ -986,7 +997,62 @@ type processTick_plus_Ask_quote_where_maket_is_closed_Bid_side_tests() =
     [<TestMethod>] 
     member this.processTick_with_Ask_quote_does_not_generate_CancelBuy_order() =
         Assert.IsFalse( ordersAfterTick |> hasCancelBuyOrders)   
+        
+[<TestClass>]
+type processTick_plus_Trade_where_market_is_open_and_offered_with_more_than_trade_size_tests() = 
 
+    let lastUpdateTime = (DateTime.MinValue.AddTicks(int64 1))
+    let tickTime = (DateTime.MinValue.AddTicks(int64 2))
+
+    // market set up
+    let orders = List.empty<Order>
+    let bestBidP = 13700.
+    let bestAskP = 13710.
+    let lastP =  13700.
+    let marketBeforeTick = { bestBid = bestBidP; bestAsk = bestAskP; last = lastP; time = lastUpdateTime; isOpen = true;}
+        
+    // priceNode test set up
+    let nodePrice = 13700.
+    let nodeBidSize = 0
+    let nodeAskSize = 20
+    let nodeBeforeTick = { price = nodePrice ; bid = nodeBidSize; ask = nodeAskSize; time = lastUpdateTime; }
+
+    // trade
+    let tradePrice = 13700.
+    let tradeSize = 15
+    let nodesAskSizeAfterTrade = max 0 (nodeAskSize - tradeSize)
+    let nodesBidSizeAfterTrade = max 0 (nodeBidSize - tradeSize)
+    let trade = Trade {defaultTrade with time = tickTime; price = tradePrice; size = tradeSize;}
+    let (ordersAfterTick, pNodeAfterTick) = processTick orders marketBeforeTick nodeBeforeTick trade
+        
+    [<TestMethod>]        
+    member this.processTick_with_Trade_correctly_modifies_PriceNodes_ask_size() = 
+        Assert.AreEqual(pNodeAfterTick.ask, nodesAskSizeAfterTrade)
+
+    [<TestMethod>]        
+    member this.processTick_with_Trade_correctly_modifies_PriceNodes_bid_Size() = 
+        Assert.AreEqual(pNodeAfterTick.bid, nodesBidSizeAfterTrade)
+        
+    [<TestMethod>]        
+    member this.processTick_with_Trade_quote_generates_Buy_order() =
+        Assert.IsTrue( ordersAfterTick |> hasBuyOrders)  
+    
+    [<TestMethod>]        
+    member this.processTick_with_Trade_Quote_generates_correctly_sized_Buy_order() =     
+        let orderSize = ordersAfterTick |> getFstCancelBuyOrder |> getOrderSize
+        Assert.AreEqual(orderSize, tradeSize) 
+
+    [<TestMethod>] 
+    member this.processTick_with_Trade_quote_does_not_generate_Sell_order() =
+        Assert.IsFalse( ordersAfterTick |> hasSellOrders) 
+
+    [<TestMethod>]        
+    member this.processTick_with_Trade_Quote_does_not_generate_CancelSell_order() =  
+        Assert.IsFalse( ordersAfterTick |> hasCancelSellOrders)
+
+    [<TestMethod>] 
+    member this.processTick_with_Trade_quote_does_not_generate_CancelBuy_order() =
+        Assert.IsFalse( ordersAfterTick |> hasCancelBuyOrders)   
 
 //    [<TestMethod>]
 //    [<ExpectedException(typeof<System.InvalidOperationException>)>]

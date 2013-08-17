@@ -50,5 +50,3 @@ module Test_Helper_Functions =
             | Some(CancelBuy q)  -> q.time
             | Some(Sell q)       -> q.time
             | Some(CancelSell q) -> q.time
-
-
